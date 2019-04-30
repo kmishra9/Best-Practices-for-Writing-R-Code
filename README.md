@@ -1,4 +1,4 @@
-# Best Practices for Writing R Code
+# Best Practices & Style Guide for Writing R Code
 
 ##  Why Best Practices Are Important
 
@@ -52,18 +52,59 @@ Many data science projects, especially those with multiple contributors, would b
 ```
 For brevity, not every directory is "expanded", but we can glean some important takeaways from what we _do_ see:
 
-1. All files and directories are numbered! This makes the jumble of alphabetized filenames much more coherent and places similar code and files next to one another. This also helps us understand how data flows from start to finish and allows us to easily map a script to its output (i.e. `2 - Analysis/1 - Absentee-Mean/1-absentee-mean-primary.R` => `5 - Results/1 - Absentee-Mean/1-absentee-mean-primary.RDS`). If you take nothing else away from this guide, this is the single most helpful suggestion to make your workflow more coherent.
+1. **All files and directories are numbered!** This makes the jumble of alphabetized filenames much more coherent and places similar code and files next to one another. This also helps us understand how data flows from start to finish and allows us to easily map a script to its output (i.e. `2 - Analysis/1 - Absentee-Mean/1-absentee-mean-primary.R` => `5 - Results/1 - Absentee-Mean/1-absentee-mean-primary.RDS`). If you take nothing else away from this guide, this is the single most helpful suggestion to make your workflow more coherent.
 2. Directories have capitalized letters and spaces but individual files do not.
-3. Both `.gitignore` and `.Rproj` files are present. These are subtle but important additions.
+3. Both **`.gitignore`** and **`.Rproj`** files are present. These are subtle but important additions.
     - There is a standardized `.gitignore` for `R` which you [can download](https://github.com/github/gitignore/blob/master/R.gitignore) and add to your project. This ensures you're not committing log files or things that would otherwise best be left ignored to GitHub.
     - An "R Project" can be created within RStudio by going to `File >> New Project`. Depending on where you are with your research, choose the most appropriate option. This will save preferences, working directories, and even the results of running code/data (though I'd recommend starting from scratch each time you open your project, in general). Then, ensure that whenever you are working on that specific research project, you open your created project to enable the full utility of `.Rproj` files.
-4. Bash scripts are a useful component of a reproducible workflow. At many of the directory levels (i.e. in `3 - Analysis`), there is a bash script that runs each of the analysis scripts. This is exceptionally useful when data "upstream" changes -- you simply run the bash script. For big data workflows, the concept of "backgrounding" a Bash script allows you to start a "job" (i.e. run the script) and leave it overnight to run. At the top level, a bash script (``0-run-project.sh`) that simply calls the directory-level bash scripts (i.e. `0-prep-data.sh`,  `0-run-analysis.sh`, `0-run-figures.sh`, etc.) is a powerful tool to rerun every script in your project. See the included example bash scripts for more details.
-5. Finally, you may have noticed the `0-config.R` file. This is the single most important file for your project. It will be responsible for a variety of common tasks, declare global variables, load functions, declare paths, and more. _Every other file in the project_ will begin with `source("0-config")`, and its role is to reduce redundancy and create an abstraction layer that allows you to make changes in one place (`0-config.R`) rather than 5 different files. To this end, paths which will be reference in multiple scripts (i.e. a merged_data_path) can be declared in `0-config.R` and simply referred to by its variable name in scripts. If you ever want to change things, rename them, or even switch from a downsample to the full data, all you would then to need to do is modify the path in one place and the change will automatically update throughout your project. See the example config file for more details.
+4. **Bash scripts** are a useful component of a reproducible workflow. At many of the directory levels (i.e. in `3 - Analysis`), there is a bash script that runs each of the analysis scripts. This is exceptionally useful when data "upstream" changes -- you simply run the bash script. For big data workflows, the concept of "backgrounding" a Bash script allows you to start a "job" (i.e. run the script) and leave it overnight to run. At the top level, a bash script (`0-run-project.sh`) that simply calls the directory-level bash scripts (i.e. `0-prep-data.sh`,  `0-run-analysis.sh`, `0-run-figures.sh`, etc.) is a powerful tool to rerun every script in your project. See the included example bash scripts for more details.
+5. Finally, you may have noticed the **`0-config.R`** file. This is the single most important file for your project. It will be responsible for a variety of common tasks, declare global variables, load functions, declare paths, and more. _Every other file in the project_ will begin with `source("0-config")`, and its role is to reduce redundancy and create an abstraction layer that allows you to make changes in one place (`0-config.R`) rather than 5 different files. To this end, paths which will be reference in multiple scripts (i.e. a `merged_data_path`) can be declared in `0-config.R` and simply referred to by its variable name in scripts. If you ever want to change things, rename them, or even switch from a downsample to the full data, all you would then to need to do is modify the path in one place and the change will automatically update throughout your project. See the example config file for more details.
 
 ### Comments
 
-1. File Headers
-2. File Structuring
-3. Single-Line Comments
+1. **File Headers** - Every file in a project should have a header that allows it to be interpreted on its own. It should include the name of the project and a short description for what this file (among the many in your project) does specifically. You may optionally wish to include the inputs and outputs of the script as well, though the next section makes this significantly less necessary.
+  ```
+  ################################################################################
+  # Master's Thesis - Spatial Epidemiology of Absenteeism
+  # Shoo the Flu Evaluation
+  # 2011-2018 Spatial Epidemiology Analysis
+  # Input management file for creating aggregated, publishable datasets of statistical inputs
+  ################################################################################
+  ```
+2. **File Structure** - Just as your data "flows" through your project, data should flow naturally through a script. Very generally, you want to 1) source your config => 2) load all your data => 3) do all your analysis/computation => save your data. Each of these sections should be "chunked together" using comments. See [this file](https://github.com/kmishra9/Flu-Absenteeism/blob/master/Master's%20Thesis%20-%20Spatial%20Epidemiology%20of%20Influenza/2a%20-%20Statistical-Inputs.R) for a good example of how to cleanly organize a file in a way that follows this "flow" and functionally separate pieces of code that are doing different things.
+  - **Note**: If your computer isn't able to handle this workflow due to RAM or requirements, modifying the ordering of your code to accomodate it won't be ultimately helpful and your code will be fragile, not to mention less readable and messy. You need to look into high-performance computing (HPC) resources in this case.
+3. **Single-Line Comments** - Commenting your code is an important part of reproducibility and helps document your code for the future. When things change or break, you'll be thankful for comments. There's no need to comment excessively or unnecessarily, but a comment describing what a large or complex chunk of code does is always helpful. See [this file](https://github.com/kmishra9/Flu-Absenteeism/blob/master/Master's%20Thesis%20-%20Spatial%20Epidemiology%20of%20Influenza/1b%20-%20Map-Management.R) for an example of how to comment your code and notice that comments are always in the form of:
+
+  ```# This is a comment -- first letter is capitalized and spaced away from the pound sign```
+4. **Multi-Line Comments** - Occasionally, multi-line comments are necessary. Don't add line breaks manually to a single-line comment for the purpose of making it "fit" on the screen. Instead, in RStudio => Global Options => Code => “Soft-wrap R source files” to have lines wrap around. Format your multi-line comments like the
+5. **Function Documentation** - Functions _need_ documentation. For any reproducible workflows, they are essential, because R is dynamically typed. This means, you can pass a string into an argument that is meant to be a `data.table`, or a list into an argument meant for a `tibble`. It is the responsibility of a function's author to document what each argument is meant to do and its basic type. This is an example for documenting a function (inspired by [JavaDocs](https://www.oracle.com/technetwork/java/javase/documentation/index-137868.html#format)):
+
+  ```
+  calculate_KSSS = function(centroids, statistical_input, time_column = "schoolyr", location_column = "school_dist", value_column = "absences_ill", population_column = "student_days", k_nearest_neighbors = 5, nsim = 9999, heat_map = TRUE, heat_map_title = NULL, heat_map_caption = NULL) {
+    # @Description: Calculates the population-based Kulldorff Spatial Scan Statistic
+    # @Arg: centroids: an SPDF from which the centroids of each school catchment area can be drawn, along with a uniquely identifying location_column (such as an ID or School-District combo)
+    # @Arg: statistical_input: a tibble of at least 4 columns containing a location, time, value, and population size, ordered by (location_column, time_column)
+    # @Arg: time_column: an integer or string column on which values can be clustered temporally
+    # @Arg: location_column: an integer or string column on which values can be clustered spatially (must be a unique key)
+    # @Arg: value_column: an integer or string column containing the count data for the given space-time
+    # @Arg: population_column: an integer column containing the size of the population for the given space-time
+    # @Arg: heat_map: a boolean variable dictating whether to plot a heat_map based on how likely a school catchment is to be part of a cluster
+    # @Arg: heat_map_title: a string used as the title for a heat_map if one is drawn
+    # @Arg: heat_map_caption: a string used as the caption for a heat_map if one is drawn
+    # @Output: plots a heatmap local clustering and prints the total number of significant clusters if heat_map = TRUE
+    # @Return: the a list containing the results of running KSSS and a tibble of all clusters
+
+    ...
+    Some code here
+    ...
+  }
+  ```
+  Even if you have no idea what a KSSS is, you have some way of understanding what the function does, its various inputs, and how you might go about using the function to do what you want. Also notice that the function is defined in one line at the top (which will soft-wrap around) and all optional arguments (i.e. ones with pre-specified defaults) follow required arguments.
 
 ### Variables
+
+### Loading & Saving Intermediary Files
+
+### Automated Styling Tools
+
+### Tidyverse vs. Base R
