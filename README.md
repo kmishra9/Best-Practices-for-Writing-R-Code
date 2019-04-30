@@ -57,7 +57,7 @@ For brevity, not every directory is "expanded", but we can glean some important 
 2. **Use`.gitignore` and `.Rproj` files** - There is a standardized `.gitignore` for `R` which you [can download](https://github.com/github/gitignore/blob/master/R.gitignore) and add to your project. This ensures you're not committing log files or things that would otherwise best be left ignored to GitHub.
     - An "R Project" can be created within RStudio by going to `File >> New Project`. Depending on where you are with your research, choose the most appropriate option. This will save preferences, working directories, and even the results of running code/data (though I'd recommend starting from scratch each time you open your project, in general). Then, ensure that whenever you are working on that specific research project, you open your created project to enable the full utility of `.Rproj` files.
 3. **Bash scripts** are a useful component of a reproducible workflow. At many of the directory levels (i.e. in `3 - Analysis`), there is a bash script that runs each of the analysis scripts. This is exceptionally useful when data "upstream" changes -- you simply run the bash script. For big data workflows, the concept of "backgrounding" a Bash script allows you to start a "job" (i.e. run the script) and leave it overnight to run. At the top level, a bash script (`0-run-project.sh`) that simply calls the directory-level bash scripts (i.e. `0-prep-data.sh`,  `0-run-analysis.sh`, `0-run-figures.sh`, etc.) is a powerful tool to rerun every script in your project. See the included example bash scripts for more details.
-4. Finally, you may have noticed the **`0-config.R`** file. This is the single most important file for your project. It will be responsible for a variety of common tasks, declare global variables, load functions, declare paths, and more. _Every other file in the project_ will begin with `source("0-config")`, and its role is to reduce redundancy and create an abstraction layer that allows you to make changes in one place (`0-config.R`) rather than 5 different files. To this end, paths which will be reference in multiple scripts (i.e. a `merged_data_path`) can be declared in `0-config.R` and simply referred to by its variable name in scripts. If you ever want to change things, rename them, or even switch from a downsample to the full data, all you would then to need to do is modify the path in one place and the change will automatically update throughout your project. See the example config file for more details.
+4. **Use a Config File** - This is the single most important file for your project. It will be responsible for a variety of common tasks, declare global variables, load functions, declare paths, and more. _Every other file in the project_ will begin with `source("0-config")`, and its role is to reduce redundancy and create an abstraction layer that allows you to make changes in one place (`0-config.R`) rather than 5 different files. To this end, paths which will be reference in multiple scripts (i.e. a `merged_data_path`) can be declared in `0-config.R` and simply referred to by its variable name in scripts. If you ever want to change things, rename them, or even switch from a downsample to the full data, all you would then to need to do is modify the path in one place and the change will automatically update throughout your project. See the example config file for more details.
 
 ### Comments
 
@@ -106,12 +106,13 @@ For brevity, not every directory is "expanded", but we can glean some important 
   - For more help, check out [Be Expressive: How to Give Your Variables Better Names](https://spin.atomicobject.com/2017/11/01/good-variable-names/)
 
 2. **Snake_Case** - Base R allows `.` in variable names and functions (such as `read.csv()`), but this goes against best practices in many other coding languages. For consistencies sake, across all data science languages, `snake_case` has been adopted and modern packages and functions typically use it (i.e. `readr::read_csv()`). As a very general rule of thumb, if a package you're using doesn't use `snake_case`, there may be an updated version or more modern package that _does_, bringing with it the variety of performance improvements and bug fixes inherent in more mature and modern software.
+  - **Note**: you may also see `camelCase` throughout the R code you come across. This is _okay_ but not ideal -- try to stay consistent across all your code with `snake_case`.
 
 3. **Assignment** - _Please_ use the `=` operator instead of  `<-`. Please! Similarly, in a function call, definitely use "named arguments" and separate arguments by to make your code more readable. Here's an example of what a function call for `calculate_KSSS` (documented above) might look like without named arguments or any separation:
   ```
   input_1_KSSS_ill = calculate_KSSS(all_study_school_shapes, input_1, 5, "Local Clustering of Illness-Specific\n Absence Rates in all years during Flu Season")
   ```
-  And here it is again using the best practices we've outlined. Which is more coherent?
+  And here it is again using the best practices we've outlined:
   ```
   input_1_KSSS_ill = calculate_KSSS(
     centroids           = all_study_school_shapes,
@@ -120,6 +121,7 @@ For brevity, not every directory is "expanded", but we can glean some important 
     heat_map_title      = "Local Clustering of Illness-Specific\n Absence Rates in all years during Flu Season"
   )
   ```
+  I'll let you be the judge of which is more coherent.
 
 ### Loading & Saving Intermediary Files
 
