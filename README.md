@@ -4,9 +4,7 @@
 
 Writing good code that adheres to many of the best practices listed here makes your code more digestible to anyone else who examines your code at any point. That could include collaborators, study reviewers, or even yourself, 6 months into the future. Writing best-practice code also makes the process of finding bugs, fixing them, comparing replicated code, and making large breaking changes much easier.
 
-## List of Best Practices
-
-### Project Structure
+## Project Structure
 
 Many data science projects, especially those with multiple contributors, would benefit from following a standardized workflow that is consistent across _all_ projects. One way to do this is by using a directory structure that looks like this:
 ```
@@ -59,7 +57,7 @@ For brevity, not every directory is "expanded", but we can glean some important 
 3. **Bash scripts** are a useful component of a reproducible workflow. At many of the directory levels (i.e. in `3 - Analysis`), there is a bash script that runs each of the analysis scripts. This is exceptionally useful when data "upstream" changes -- you simply run the bash script. For big data workflows, the concept of "backgrounding" a Bash script allows you to start a "job" (i.e. run the script) and leave it overnight to run. At the top level, a bash script (`0-run-project.sh`) that simply calls the directory-level bash scripts (i.e. `0-prep-data.sh`,  `0-run-analysis.sh`, `0-run-figures.sh`, etc.) is a powerful tool to rerun every script in your project. See the included example bash scripts for more details.
 4. **Use a Config File** - This is the single most important file for your project. It will be responsible for a variety of common tasks, declare global variables, load functions, declare paths, and more. _Every other file in the project_ will begin with `source("0-config")`, and its role is to reduce redundancy and create an abstraction layer that allows you to make changes in one place (`0-config.R`) rather than 5 different files. To this end, paths which will be reference in multiple scripts (i.e. a `merged_data_path`) can be declared in `0-config.R` and simply referred to by its variable name in scripts. If you ever want to change things, rename them, or even switch from a downsample to the full data, all you would then to need to do is modify the path in one place and the change will automatically update throughout your project. See the example config file for more details.
 
-### Comments
+## Comments
 
 1. **File Headers** - Every file in a project should have a header that allows it to be interpreted on its own. It should include the name of the project and a short description for what this file (among the many in your project) does specifically. You may optionally wish to include the inputs and outputs of the script as well, though the next section makes this significantly less necessary.
   ```
@@ -100,7 +98,7 @@ For brevity, not every directory is "expanded", but we can glean some important 
   ```
   Even if you have no idea what a `KSSS` is, you have some way of understanding what the function does, its various inputs, and how you might go about using the function to do what you want. Also notice that the function is defined in one line at the top (which will soft-wrap around) and all optional arguments (i.e. ones with pre-specified defaults) follow arguments that require user input.
 
-### Variables & Function Calls
+## Variables & Function Calls
 
 1. **Variable Names** - Try to make your variable names both more expressive and more explicit. Being a bit more verbose is not just _okay_ -- its prefferred! For example, instead of naming a variable `vaxcov_1718`, try naming it `vaccination_coverage_2017_18`. Similarly, `flu_res` could be named `absentee_flu_residuals` and you've already made significant progress in making your code more readable and explicit.
   - For more help, check out [Be Expressive: How to Give Your Variables Better Names](https://spin.atomicobject.com/2017/11/01/good-variable-names/)
@@ -123,11 +121,11 @@ For brevity, not every directory is "expanded", but we can glean some important 
   ```
   I'll let you be the judge of which is more coherent.
 
-### Loading & Saving Intermediary Files
+## Loading & Saving Intermediary Files
 
-### Automated Styling Tools in RStudio
+## Automated Styling Tools in RStudio
 
 1. **Code Autoformatting**
 2. **Assignment Aligner**
 
-### Tidyverse vs. Base R
+## Tidyverse vs. Base R
