@@ -73,6 +73,7 @@ For brevity, not every directory is "expanded", but we can glean some important 
 3. **Single-Line Comments** - Commenting your code is an important part of reproducibility and helps document your code for the future. When things change or break, you'll be thankful for comments. There's no need to comment excessively or unnecessarily, but a comment describing what a large or complex chunk of code does is always helpful. See [this file](https://github.com/kmishra9/Flu-Absenteeism/blob/master/Master's%20Thesis%20-%20Spatial%20Epidemiology%20of%20Influenza/1b%20-%20Map-Management.R) for an example of how to comment your code and notice that comments are always in the form of:
 
   ```# This is a comment -- first letter is capitalized and spaced away from the pound sign```
+
 4. **Multi-Line Comments** - Occasionally, multi-line comments are necessary. Don't add line breaks manually to a single-line comment for the purpose of making it "fit" on the screen. Instead, in RStudio => Global Options => Code => “Soft-wrap R source files” to have lines wrap around. Format your multi-line comments like the file header from above.
 5. **Function Documentation** - Functions _need_ documentation. For any reproducible workflows, they are essential, because R is dynamically typed. This means, you can pass a `string` into an argument that is meant to be a `data.table`, or a `list` into an argument meant for a `tibble`. It is the responsibility of a function's author to document what each argument is meant to do and its basic type. This is an example for documenting a function (inspired by [JavaDocs](https://www.oracle.com/technetwork/java/javase/documentation/index-137868.html#format)):
   ```
@@ -173,13 +174,13 @@ For brevity, not every directory is "expanded", but we can glean some important 
     - **Note**: when you use `load_rds` you must assign the thing being loaded to a variable (i.e. `some_descriptive_variable_name = load_rds(...)`). Then, use the variable as you would. This makes your code less fragile and it doesn't need to rely on an `.RData` file to load in a particular name for the code to run properly.
     - **Note**: if you have many related R objects you would have otherwise saved all together using the `save` function, the functional equivalent with `RDS` would be to create a (named) list containing each of these objects, and saving it.
 
-2. **CSVs** - Once again, the `readr` package as part of the Tidvyerse is great, with a much faster `read_csv()` than Base R's `read.csv()`. For massive CSVs (> 5 GB), you'll find `data.table::fread()` to be the fastest CSV reader in any data science language out there. For writing CSVs, `readr::write_csv()` outclasses Base R by a significant margin as well.
+2. **CSVs** - Once again, the `readr` package as part of the Tidvyerse is great, with a much faster `read_csv()` than Base R's `read.csv()`. For massive CSVs (> 5 GB), you'll find `data.table::fread()` to be the fastest CSV reader in any data science language out there. For writing CSVs, `readr::write_csv()` and `data.table::fwrite()` outclass Base R's `write.csv()` by a significant margin as well.
 
 3. **Feather** - If you're using both R and Python, you may wish to check out the [Feather package](https://www.rdocumentation.org/packages/feather/versions/0.3.3) for exchanging data between the two languages [extremely quickly](https://blog.rstudio.com/2016/03/29/feather/).
 
 ### Tidyverse
 
-Throughout this document there have been references to the Tidyverse, but this section is to explicitly show you how to transform your Base R tendencies to Tidyverse (or Data.Table, Tidyverse's performance-optimized competitor). Tidyverse is quickly becoming [the gold standard](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/) in R data analysis and modern data science packages and code should be using Tidyverse style and packages unless there's a significant reason not to (i.e. big data pipelines that would benefit from Data.Table's performance optimizations).
+Throughout this document there have been references to the Tidyverse, but this section is to explicitly show you how to transform your Base R tendencies to Tidyverse (or Data.Table, Tidyverse's performance-optimized competitor). Tidyverse is quickly becoming [the gold standard](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/) in R data analysis and modern data science packages and code should use Tidyverse style and packages unless there's a significant reason not to (i.e. big data pipelines that would benefit from Data.Table's performance optimizations).
 
 The package author has published a [great textbook on R for Data Science](https://r4ds.had.co.nz/), which leans heavily on many Tidyverse packages and may be worth checking out.
 
@@ -222,9 +223,9 @@ Working with Tidyverse within functions can be somewhat of a pain due to non-sta
 
 ### Optimizing for Performance
 
-It may also be the case that you're working with very large datasets. Generally I would define this as 10+ million rows. As is outlined in this document, the 3 main players in the data analysis space are Base R, `Tidvyerse` (more specificially, `dplyr`), and `data.table`. For a majority of things, Base R is inferior to both `dplyr` and `data.table`, with concise but less clear syntax and less speed. `Dplyr` is architected for medium and smaller data, and while its very fast for everyday usage, it trades off maximum performance for ease of use and syntax compared to `data.table`. An overview of the `dplyr` vs `data.table` debate can be found in [this stackoverflow post]((https://stackoverflow.com/questions/21435339/data-table-vs-dplyr-can-one-do-something-well-the-other-cant-or-does-poorly/27840349#27840349) and all 3 answers are worth a read.
+It may also be the case that you're working with very large datasets. Generally I would define this as 10+ million rows. As is outlined in this document, the 3 main players in the data analysis space are Base R, `Tidvyerse` (more specificially, `dplyr`), and `data.table`. For a majority of things, Base R is inferior to both `dplyr` and `data.table`, with concise but less clear syntax and less speed. `Dplyr` is architected for medium and smaller data, and while its very fast for everyday usage, it trades off maximum performance for ease of use and syntax compared to `data.table`. An overview of the `dplyr` vs `data.table` debate can be found in [this stackoverflow post](https://stackoverflow.com/questions/21435339/data-table-vs-dplyr-can-one-do-something-well-the-other-cant-or-does-poorly/27840349#27840349) and all 3 answers are worth a read.
 
-You can also achieve a performance boost by running `dplyr` commands on `data.table`s, which I find to be the best of both worlds, given that a `data.table` is a special type of `data.frame` and fairly easy to convert any df to with the `as.data.table()` function. The speedup is due to `dplyr`'s use of the `data.table` backend and in the future this coupling should become even more natural.
+You can also achieve a performance boost by running `dplyr` commands on `data.table`s, which I find to be the best of both worlds, given that a `data.table` is a special type of `data.frame` and fairly easy to convert with the `as.data.table()` function. The speedup is due to `dplyr`'s use of the `data.table` backend and in the future this coupling should become even more natural.
 
 ## Miscellaneous Best Practices
 
@@ -282,4 +283,4 @@ You can also achieve a performance boost by running `dplyr` commands on `data.ta
           axis.text.x = element_text(size = 12)) +
     ggtitle(title)
   ```
-  Imagine (or perhaps mournfully recall) the mess that can occur when you don't strictly style a complicated `ggplot` call. Trying to fix bugs and ensure your code is working cna be a nightmare. Now imagine trying to do it with the same code 6 months after you've written it. Invest the time early and reap the rewards as the code practically explains itself, line by line.
+  Imagine (or perhaps mournfully recall) the mess that can occur when you don't strictly style a complicated `ggplot` call. Trying to fix bugs and ensure your code is working can be a nightmare. Now imagine trying to do it with the same code 6 months after you've written it. Invest the time now and reap the rewards as the code practically explains itself, line by line.
