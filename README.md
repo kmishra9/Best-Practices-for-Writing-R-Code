@@ -29,7 +29,6 @@ Many data science projects, especially those with multiple contributors, would b
     2 - Absentee-Positivity-Check/
     3 - Absentee-P1/
     4 - Absentee-P2/
-
 3 - Figures/
     0-run-figures.sh
     ...
@@ -122,8 +121,6 @@ For brevity, not every directory is "expanded", but we can glean some important 
   ```
   I'll let you be the judge of which is more coherent.
 
-## Loading & Saving Intermediary Files
-
 ## Automated Styling Tools (in RStudio)
 
 1. **Code Autoformatting** - RStudio includes a fantastic built-in utility (keyboard shortcut: `CMD-Shift-A`) for autoformatting highlighted chunks of code to fit many of the best practices listed here. It generally makes code more readable and fixes a lot of the small things you may not feel like fixing yourself. Try it out as a "first pass" on some code of yours that _doesn't_ follow many of these best practices!
@@ -168,4 +165,57 @@ For brevity, not every directory is "expanded", but we can glean some important 
     - **Note**: The default Tidyverse styler is subtly different from some of the things we've advocated for in this document. Most notably we differ with regards to the assignment operator (`<-` vs `=`) and number of spaces before/after "tokens" (i.e. Assignment Aligner add spaces before `=` signs to align them properly). For this reason, we'd recommend the following: `style_dir(path = ..., scope = "line_breaks", strict = FALSE, `. You can also customize StyleR [even more](http://styler.r-lib.org/articles/customizing_styler.html) if you're really hardcore.
     - **Note**: As is mentioned in the package vignette linked above, StyleR modifies things _in-place_, meaning it overwrites your existing code and replaces it with the updated, properly styled code. This makes it a good fit on projects _with version control_, but if you don't have backups or a good way to revert back to the intial code, I wouldn't recommend going this route.
 
-## Tidyverse vs. Base R
+## Outdated Base R Practices to Avoid
+
+### Reading/Saving Data
+1. **`.RDS` vs `.RData` Files** - One of the most common ways to load and save data in Base R is with the `load()` and `save()`  functions to serialize multiple objects into a file. The biggest problems with this practice include an inability to control the names of things getting loaded in, the inherent confusion this creates in understanding older code, and the inability to load individual elements of a saved file. For this, we recommend using the RDS format to save R objects.
+    - **Note**: `saveRDS` and `loadRDS` are Base R functions to do this but we recommend using `save_rds` and `load_rds` from the `readr` package for the sake of consistency and performance improvements.
+    - **Note**: when you use `load_rds` you must assign the thing being loaded to a variable (i.e. `some_descriptive_variable_name = load_rds(...)`). Then, use the variable as you would. This makes your code less fragile and it doesn't need to rely on an `.RData` file to load in a particular name for the code to run properly.
+    - **Note**: if you have many related R objects you would have otherwise saved all together using the `save` function, the functional equivalent with `RDS` would be to create a (named) list containing each of these objects, and saving it.
+
+2. **CSVs** - Once again, the `readr` package as part of the Tidvyerse is great, with a much faster `read_csv()` than Base R's `read.csv()`. For massive CSVs (> 5 GB), you'll find `data.table::fread()` to be the fastest CSV reader in any data science language out there. For writing CSVs, `readr::write_csv()` outclasses Base R by a significant margin as well.
+
+3. **Feather** - If you're using both R and Python, you may wish to check out the [Feather package](https://www.rdocumentation.org/packages/feather/versions/0.3.3) for exchanging data between the two languages [extremely quickly](https://blog.rstudio.com/2016/03/29/feather/).
+
+### Tidyverse
+
+Throughout this document there have been references to the Tidyverse, but this section is to explicitly show you how to transform your Base R tendencies to Tidyverse (or Data.Table, Tidyverse's performance-optimized competitor). Tidyverse is quickly becoming [the gold standard](https://rviews.rstudio.com/2017/06/08/what-is-the-tidyverse/) in R data analysis and modern data science packages and code should be using Tidyverse style and packages unless there's a significant reason not to (i.e. big data pipelines that would benefit from Data.Table's performance optimizations).
+
+The package author has published a [great textbook on R for Data Science](https://r4ds.had.co.nz/), which leans heavily on many Tidyverse packages and may be worth checking out.
+
+The following list is not exhaustive, but is a compact overview to begin to translate Base R into something better:
+
+Base R | Better Style, Performance, and Utility
+--- | ---
+_|_
+`read.csv()`| `readr::read_csv()` or `data.table::fread()`
+`write.csv()` | `readr::write_csv()` or `data.table::fwrite()`
+`readRDS` | `readr::read_rds()`
+`saveRDS()` | `readr::write_rds()`
+_|_
+`data.frame()` | `tibble::tibble()` or `data.table::data.table()`
+`rbind()` | `dplyr::bind_rows()`
+`cbind()` | `dplyr::bind_cols()`
+`df$some_column` | `df %>% pull(some_column)`
+`df$some_column = ...` | `df %>% mutate(some_column = ...)`
+`df[get_rows_condition,]` | `df %>% filter(get_rows_condition)`
+`df[,c(col1, col2)]` | `df %>% select(col1, col2)``
+_|_
+`str()` | `dplyr::glimpse()`
+`grep(pattern, x)` | `stringr::str_which(string, pattern)`
+`gsub(pattern, replacement, x)` | `stringr::str_replace(string, pattern, replacement)`
+`ifelse(test_expression, yes, no)`| `if_else(condition, true, false)`
+`ifelse(test_expression1, yes1, ifelse(test_expression2, yes2, ifelse(test_expression3, yes3, no)))` | `case_when(test_expression1 ~ yes1,  test_expression2 ~ yes2, test_expression3 ~ yes3, TRUE ~ no)`
+
+For a more extensive set of syntactical translations to Tidyverse, you can check out [this document](https://tavareshugo.github.io/data_carpentry_extras/base-r_tidyverse_equivalents/base-r_tidyverse_equivalents.html#reshaping_data).
+
+
+Working with Tidyverse within functions can be somewhat of a pain due to non-standard evaluation (NSE) semantics. If you're an avid function writer, we'd recommend checking out the following resources:
+
+- [Tidy Eval in 5 Minutes](https://www.youtube.com/watch?v=nERXS3ssntw) (video)
+- [Tidy Evaluation](https://tidyeval.tidyverse.org/index.html) (e-book)
+- [Data Frame Columns as Arguments to Dplyr Functions](https://www.brodrigues.co/blog/2016-07-18-data-frame-columns-as-arguments-to-dplyr-functions/) (blog)
+- [Standard Evaluation for *_join](https://stackoverflow.com/questions/28125816/r-standard-evaluation-for-join-dplyr) (stackoverflow)
+- [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html) (package vignette)
+
+### Optimizing for Performance
