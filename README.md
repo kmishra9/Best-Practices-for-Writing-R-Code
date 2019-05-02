@@ -196,16 +196,18 @@ _|_
 `data.frame()` | `tibble::tibble()` or `data.table::data.table()`
 `rbind()` | `dplyr::bind_rows()`
 `cbind()` | `dplyr::bind_cols()`
-`df$some_column` | `df %>% pull(some_column)`
-`df$some_column = ...` | `df %>% mutate(some_column = ...)`
-`df[get_rows_condition,]` | `df %>% filter(get_rows_condition)`
-`df[,c(col1, col2)]` | `df %>% select(col1, col2)``
+`df$some_column` | `df %>% dplyr::pull(some_column)`
+`df$some_column = ...` | `df %>% dplyr::mutate(some_column = ...)`
+`df[get_rows_condition,]` | `df %>% dplyr::filter(get_rows_condition)`
+`df[,c(col1, col2)]` | `df %>% dplyr::select(col1, col2)`
+`merge(df1, df2, by = ..., all.x = ..., all.y = ...)` | `df1 %>% dplyr::left_join(df2, by = ...)` or `dplyr::full_join` or `dplyr::inner_join` or `dplyr::right_join`
 _|_
 `str()` | `dplyr::glimpse()`
 `grep(pattern, x)` | `stringr::str_which(string, pattern)`
 `gsub(pattern, replacement, x)` | `stringr::str_replace(string, pattern, replacement)`
 `ifelse(test_expression, yes, no)`| `if_else(condition, true, false)`
-`ifelse(test_expression1, yes1, ifelse(test_expression2, yes2, ifelse(test_expression3, yes3, no)))` | `case_when(test_expression1 ~ yes1,  test_expression2 ~ yes2, test_expression3 ~ yes3, TRUE ~ no)`
+Nested: `ifelse(test_expression1, yes1, ifelse(test_expression2, yes2, ifelse(test_expression3, yes3, no)))` | `case_when(test_expression1 ~ yes1,  test_expression2 ~ yes2, test_expression3 ~ yes3, TRUE ~ no)`
+`proc.time()` | `tictoc::tic()` and `tictoc::toc()`
 
 For a more extensive set of syntactical translations to Tidyverse, you can check out [this document](https://tavareshugo.github.io/data_carpentry_extras/base-r_tidyverse_equivalents/base-r_tidyverse_equivalents.html#reshaping_data).
 
@@ -219,3 +221,65 @@ Working with Tidyverse within functions can be somewhat of a pain due to non-sta
 - [Programming with dplyr](https://dplyr.tidyverse.org/articles/programming.html) (package vignette)
 
 ### Optimizing for Performance
+
+It may also be the case that you're working with very large datasets. Generally I would define this as 10+ million rows. As is outlined in this document, the 3 main players in the data analysis space are Base R, `Tidvyerse` (more specificially, `dplyr`), and `data.table`. For a majority of things, Base R is inferior to both `dplyr` and `data.table`, with concise but less clear syntax and less speed. `Dplyr` is architected for medium and smaller data, and while its very fast for everyday usage, it trades off maximum performance for ease of use and syntax compared to `data.table`. An overview of the `dplyr` vs `data.table` debate can be found in [this stackoverflow post]((https://stackoverflow.com/questions/21435339/data-table-vs-dplyr-can-one-do-something-well-the-other-cant-or-does-poorly/27840349#27840349) and all 3 answers are worth a read.
+
+You can also achieve a performance boost by running `dplyr` commands on `data.table`s, which I find to be the best of both worlds, given that a `data.table` is a special type of `data.frame` and fairly easy to convert any df to with the `as.data.table()` function. The speedup is due to `dplyr`'s use of the `data.table` backend and in the future this coupling should become even more natural.
+
+## Miscellaneous Best Practices
+
+- For `ggplot` calls and `dplyr` pipelines, do not crowd single lines. Here are some nontrivial examples of "beautiful" pipelines, where beauty is defined by coherence:
+  ```
+  # Example 1
+  school_names = list(
+    OUSD_school_names = absentee_all %>%
+      filter(dist.n == 1) %>%
+      pull(school) %>%
+      unique %>%
+      sort,
+
+    WCCSD_school_names = absentee_all %>%
+      filter(dist.n == 0) %>%
+      pull(school) %>%
+      unique %>%
+      sort
+  )
+  ```
+  ```
+  # Example 2
+  absentee_all = fread(file = raw_data_path) %>%
+    mutate(program = case_when(schoolyr %in% pre_program_schoolyrs ~ 0,
+                               schoolyr %in% program_schoolyrs ~ 1)) %>%
+    mutate(period = case_when(schoolyr %in% pre_program_schoolyrs ~ 0,
+                              schoolyr %in% LAIV_schoolyrs ~ 1,
+                              schoolyr %in% IIV_schoolyrs ~ 2)) %>%
+    filter(schoolyr != "2017-18")
+  ```
+  And of a complex `ggplot` call:
+  ```
+  # Example 3
+  ggplot(data=data,
+         mapping=aes_string(x="year", y="rd", group=group)) +
+    geom_point(aes_string(col=group,shape=group),
+               position=position_dodge(width=0.2),size=2.5) +
+    geom_errorbar(aes_string(ymin="lb", ymax="ub", col=group),
+                  position=position_dodge(width=0.2),
+                  width=0.2) +
+    geom_point(position=position_dodge(width=0.2),size=2.5) +
+    geom_errorbar(aes(ymin=lb, ymax=ub),
+                  position=position_dodge(width=0.2),
+                  width=0.1) +
+    scale_y_continuous(limits=limits,
+                       breaks=breaks,
+                       labels=breaks) +
+    scale_color_manual(std_legend_title,values=cols,labels=legend_label) +
+    scale_shape_manual(std_legend_title,values=shapes, labels=legend_label) +
+    geom_hline(yintercept=0, linetype="dashed") +
+    ylab(yaxis_lab) +
+    xlab("Program year") +
+    theme_complete_bw() +
+    theme(strip.text.x = element_text(size = 14),
+          axis.text.x = element_text(size = 12)) +
+    ggtitle(title)
+  ```
+  Imagine (or perhaps mournfully recall) the mess that can occur when you don't strictly style a complicated `ggplot` call. Trying to fix bugs and ensure your code is working cna be a nightmare. Now imagine trying to do it with the same code 6 months after you've written it. Invest the time early and reap the rewards as the code practically explains itself, line by line.
