@@ -64,10 +64,9 @@ For brevity, not every directory is "expanded", but we can glean some important 
 1. **File Headers** - Every file in a project should have a header that allows it to be interpreted on its own. It should include the name of the project and a short description for what this file (among the many in your project) does specifically. You may optionally wish to include the inputs and outputs of the script as well, though the next section makes this significantly less necessary.
   ```
   ################################################################################
-  # Master's Thesis - Spatial Epidemiology of Absenteeism
-  # Shoo the Flu Evaluation
-  # 2011-2018 Spatial Epidemiology Analysis
-  # Input management file for creating aggregated, publishable datasets of statistical inputs
+  # @Organization - Example Organization
+  # @Project - Example Project
+  # @Description - This file is responsible for [...]
   ################################################################################
   ```
 2. **File Structure** - Just as your data "flows" through your project, data should flow naturally through a script. Very generally, you want to 1) source your config => 2) load all your data => 3) do all your analysis/computation => save your data. Each of these sections should be "chunked together" using comments. See [this file](https://github.com/kmishra9/Flu-Absenteeism/blob/master/Master's%20Thesis%20-%20Spatial%20Epidemiology%20of%20Influenza/2a%20-%20Statistical-Inputs.R) for a good example of how to cleanly organize a file in a way that follows this "flow" and functionally separate pieces of code that are doing different things.
